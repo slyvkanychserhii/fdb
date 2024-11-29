@@ -239,61 +239,86 @@ if __name__ == "__main__":
     # Создать базу данных
     fdb = FDB("library.txt", book_model)
 
-    # Добавить книги
-    id_1 = fdb.set(
-        {
-            "title": "Приключения Тома Сойера",
-            "author": "Марк Твен",
-            "year": "1876",
-            "status": "1",
-        }
-    )
+    # # Добавить книги
+    # id_1 = fdb.set(
+    #     {
+    #         "title": "Приключения Тома Сойера",
+    #         "author": "Марк Твен",
+    #         "year": "1876",
+    #         "status": "1",
+    #     }
+    # )
 
-    id_2 = fdb.set(
-        {
-            "title": "Adwentures of Tom Sawyer",
-            "author": "Mark Twain",
-            "year": "1876",
-            "status": "1",
-        }
-    )
+    # id_2 = fdb.set(
+    #     {
+    #         "title": "Adwentures of Tom Sawyer",
+    #         "author": "Mark Twain",
+    #         "year": "1876",
+    #         "status": "1",
+    #     }
+    # )
 
-    id_3 = fdb.set(
-        {
-            "title": "Приключения Незнайки",
-            "author": "Николай Носовков",
-            "year": "1953",
-            "status": "1",
-        }
-    )
+    # id_3 = fdb.set(
+    #     {
+    #         "title": "Приключения Незнайки",
+    #         "author": "Николай Носовков",
+    #         "year": "1953",
+    #         "status": "1",
+    #     }
+    # )
 
-    print("Получить все книги:")
-    for record in fdb.all():
+    # print("Получить все книги:")
+    # for record in fdb.all():
+    #     print(record)
+    # print("")
+
+    # print("Получить книгу по id:")
+    # print(fdb.get(id_1))
+    # print(fdb.get(2))
+    # print("")
+
+    # print("Найти книги по наименованию:")
+    # for record in fdb.filter("title", "Приключения Тома"):
+    #     print(record)
+    # print("")
+
+    # print("Изменить книгу по id:")
+    # fdb.update(2, {"title": "Сказки"})
+    # print(fdb.get(2))
+    # fdb.update(0, {"status": "0"})
+    # print(fdb.get(0))
+    # print("")
+
+    # print("Удалить книгу по id:")
+    # print(fdb.get(1))
+    # try:
+    #     fdb.delete(1)
+    #     print(fdb.get(1))
+    #     fdb.delete(100)
+    # except Exception as e:
+    #     print(e)
+
+    # ----------------------------------------------------------------------------
+    # Тестирование на больших объемах данных
+    # ----------------------------------------------------------------------------
+    if fdb._get_next_id() < 10000:
+        for i in range(10000):
+            id = fdb.set(
+                {
+                    "title": f"Приключения Тома Сойера {i}",
+                    "author": "Марк Твен",
+                    "year": "1876",
+                    "status": "1",
+                }
+            )
+
+    # Чтение
+    print(fdb.get(8242))
+
+    # Обновление
+    fdb.update(8242, {"year": "2024"})
+    print(fdb.get(8242))
+
+    # Поиск
+    for record in fdb.filter("year", "2024"):
         print(record)
-    print("")
-
-    print("Получить книгу по id:")
-    print(fdb.get(id_1))
-    print(fdb.get(2))
-    print("")
-
-    print("Найти книги по наименованию:")
-    for record in fdb.filter("title", "Приключения Тома"):
-        print(record)
-    print("")
-
-    print("Изменить книгу по id:")
-    fdb.update(2, {"title": "Сказки"})
-    print(fdb.get(2))
-    fdb.update(0, {"status": "0"})
-    print(fdb.get(0))
-    print("")
-
-    print("Удалить книгу по id:")
-    print(fdb.get(1))
-    try:
-        fdb.delete(1)
-        print(fdb.get(1))
-        fdb.delete(100)
-    except Exception as e:
-        print(e)
