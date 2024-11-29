@@ -285,8 +285,8 @@ if __name__ == "__main__":
     print("Изменить книгу по id:")
     fdb.update(2, {"title": "Сказки"})
     print(fdb.get(2))
-    fdb.update(1, {"status": "0"})
-    print(fdb.get(1))
+    fdb.update(0, {"status": "0"})
+    print(fdb.get(0))
     print("")
 
     print("Удалить книгу по id:")
