@@ -123,11 +123,17 @@ class FDB:
         # Очистить индексы
         self.index = {field: {} for field in self.index}
         # Перестроить индексы
-        with open(self.fname, "r", encoding="utf-8") as file:
-            for line_number, line in enumerate(file):
-                if line.strip():
-                    record = self._deserialize(line)
-                    self._index_record(line_number, record)
+        with open(self.fname, "rb") as file:
+            for id in range(self._get_next_id()):
+                file.seek(id * self.record_length)
+                data = (
+                    file.read(self.record_length)
+                    .decode("utf-8", errors="ignore")
+                    .strip()
+                )
+                if data:
+                    record = self._deserialize(data)
+                    self._index_record(id, record)
 
     def _get_next_id(self):
         """Возвращает следующий доступный ID."""
@@ -148,7 +154,9 @@ class FDB:
         """Читает запись по id."""
         with open(self.fname, "rb") as file:
             file.seek(id * self.record_length)
-            data = file.read(self.record_length).decode("utf-8").strip()
+            data = (
+                file.read(self.record_length).decode("utf-8", errors="ignore").strip()
+            )
         return self._deserialize(data) if data else None
 
     def delete(self, id):
@@ -189,9 +197,15 @@ class FDB:
         """Возвращает все записи из базы данных."""
         all_records = []
         with open(self.fname, "rb") as file:
-            for line in file:
-                if line.strip():
-                    record = self._deserialize(line)
+            for id in range(self._get_next_id()):
+                file.seek(id * self.record_length)
+                data = (
+                    file.read(self.record_length)
+                    .decode("utf-8", errors="ignore")
+                    .strip()
+                )
+                if data:
+                    record = self._deserialize(data)
                     all_records.append(record)
         return all_records
 
@@ -205,13 +219,13 @@ class FDB:
         for word in query_words:
             # Проверить наличие слова в индексе
             if word in self.index[field]:
-                # Добавить id книгив в кандидатоы
+                # Добавить id книги в кандидаты
                 for id in self.index[field][word]:
                     if id not in candidates:
                         candidates[id] = 0
                     # Увеличить рейтинг для id книги
                     candidates[id] += 1
-        # Сортировать результатов по рейтингу
+        # Сортировать результаты по рейтингу
         sorted_candidates = sorted(candidates.items(), key=lambda x: -x[1])
         # Получить записи по их id
         results = []
@@ -239,86 +253,61 @@ if __name__ == "__main__":
     # Создать базу данных
     fdb = FDB("library.txt", book_model)
 
-    # # Добавить книги
-    # id_1 = fdb.set(
-    #     {
-    #         "title": "Приключения Тома Сойера",
-    #         "author": "Марк Твен",
-    #         "year": "1876",
-    #         "status": "1",
-    #     }
-    # )
+    # Добавить книги
+    id_1 = fdb.set(
+        {
+            "title": "Приключения Тома Сойера",
+            "author": "Марк Твен",
+            "year": "1876",
+            "status": "1",
+        }
+    )
 
-    # id_2 = fdb.set(
-    #     {
-    #         "title": "Adwentures of Tom Sawyer",
-    #         "author": "Mark Twain",
-    #         "year": "1876",
-    #         "status": "1",
-    #     }
-    # )
+    id_2 = fdb.set(
+        {
+            "title": "Adwentures of Tom Sawyer",
+            "author": "Mark Twain",
+            "year": "1876",
+            "status": "1",
+        }
+    )
 
-    # id_3 = fdb.set(
-    #     {
-    #         "title": "Приключения Незнайки",
-    #         "author": "Николай Носовков",
-    #         "year": "1953",
-    #         "status": "1",
-    #     }
-    # )
+    id_3 = fdb.set(
+        {
+            "title": "Приключения Незнайки",
+            "author": "Николай Носовков",
+            "year": "1953",
+            "status": "1",
+        }
+    )
 
-    # print("Получить все книги:")
-    # for record in fdb.all():
-    #     print(record)
-    # print("")
-
-    # print("Получить книгу по id:")
-    # print(fdb.get(id_1))
-    # print(fdb.get(2))
-    # print("")
-
-    # print("Найти книги по наименованию:")
-    # for record in fdb.filter("title", "Приключения Тома"):
-    #     print(record)
-    # print("")
-
-    # print("Изменить книгу по id:")
-    # fdb.update(2, {"title": "Сказки"})
-    # print(fdb.get(2))
-    # fdb.update(0, {"status": "0"})
-    # print(fdb.get(0))
-    # print("")
-
-    # print("Удалить книгу по id:")
-    # print(fdb.get(1))
-    # try:
-    #     fdb.delete(1)
-    #     print(fdb.get(1))
-    #     fdb.delete(100)
-    # except Exception as e:
-    #     print(e)
-
-    # ----------------------------------------------------------------------------
-    # Тестирование на больших объемах данных
-    # ----------------------------------------------------------------------------
-    if fdb._get_next_id() < 10000:
-        for i in range(10000):
-            id = fdb.set(
-                {
-                    "title": f"Приключения Тома Сойера {i}",
-                    "author": "Марк Твен",
-                    "year": "1876",
-                    "status": "1",
-                }
-            )
-
-    # Чтение
-    print(fdb.get(8242))
-
-    # Обновление
-    fdb.update(8242, {"year": "2024"})
-    print(fdb.get(8242))
-
-    # Поиск
-    for record in fdb.filter("year", "2024"):
+    print("Получить все книги:")
+    for record in fdb.all():
         print(record)
+    print("")
+
+    print("Получить книгу по id:")
+    print(fdb.get(id_1))
+    print(fdb.get(2))
+    print("")
+
+    print("Найти книги по наименованию:")
+    for record in fdb.filter("title", "Приключения Тома"):
+        print(record)
+    print("")
+
+    print("Изменить книгу по id:")
+    fdb.update(2, {"title": "Сказки"})
+    print(fdb.get(2))
+    fdb.update(0, {"status": "0"})
+    print(fdb.get(0))
+    print("")
+
+    print("Удалить книгу по id:")
+    print(fdb.get(1))
+    try:
+        fdb.delete(1)
+        print(fdb.get(1))  # -> None
+        fdb.delete(100)  # -> ValueError
+    except Exception as e:
+        print(e)
